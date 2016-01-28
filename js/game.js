@@ -130,7 +130,7 @@ function update() {
 
         player.frame = 4;
     }
-    
+    scoreText.x = game.camera.x + 16;
     //  Allow the player to jump if they are touching the ground.
     if (cursors.up.isDown && player.body.touching.down)
     {
