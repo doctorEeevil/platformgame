@@ -29,7 +29,7 @@ Game.prototype.gotoGameMsg = function() {
 };
 
 /***************************************
- * P L A Y E R
+ *            P L A Y E R
  ***************************************/
 
 var Player = function Player(obj, socket) {
