@@ -1,15 +1,25 @@
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '',
+			   { preload: preload, create: create, update: update });
+
+var socket;
 
 function preload() {
-
     game.load.image('sky', 'assets/sky.png');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('star', 'assets/star.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+    game.load.spritesheet('dude_yellow', 'assets/dude_yellow.png', 32, 48);
 
+    socket = io();
+    socket.on('newPlayer', newPlayer);
+    socket.on('updatePlayer', updatePlayer);
+    
+    //var nick = prompt("nickname?");
+    socket.emit('joinGame', {'nick': socket.id});
 }
 
 var player;
+var others;
 var platforms;
 var cursors;
 
@@ -88,7 +98,8 @@ function create() {
 
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
-    
+
+    others = game.add.group();
 }
 
 function update() {
@@ -127,7 +138,6 @@ function update() {
     {
         //  Stand still
         player.animations.stop();
-
         player.frame = 4;
     }
     scoreText.x = game.camera.x + 16;
@@ -137,15 +147,54 @@ function update() {
         player.body.velocity.y = -350;
     }
 
+    player.current_x = Math.round(player.body.x);
+    player.current_pos = {
+	x: Math.round(player.body.x),
+	y: Math.round(player.body.y)};
+    if (!player.last_pos) {
+	player.last_pos = {};
+    }
+    if (player.current_pos.x != player.last_pos.x ||
+	player.current_pos.y != player.last_pos.y) {
+	player.last_pos.x = player.current_pos.x;
+	player.last_pos.y = player.current_pos.y;
+	socket.emit('movePlayer',player.current_pos);
+    }
 }
 
 function collectStar (player, star) {
-    
     // Removes the star from the screen
     star.kill();
 
     //  Add and update the score
     score += 10;
     scoreText.text = 'Score: ' + score;
-
 }
+
+function newPlayer(msg) {
+    console.log("newPlayer", msg);
+    console.log("socket",socket);
+    if (msg.id != socket.id) {
+	var dude = others.create(0,0, 'dude_yellow');
+	dude.nick = msg.nick;
+	dude.other_id = msg.id;
+	console.log("others",others);
+    }    
+}
+
+function updatePlayer(msg) {
+    var other;
+    if (msg.id != socket.id) {
+	//console.log("updatePlayer", msg);
+	for (var i = 0; i < others.children.length; i++) {
+	    //console.log("i:",i);
+	    other = others.children[i];
+	    //console.log("other",other);
+	    if (other.other_id == msg.id) {
+		other.x = msg.x;
+		other.y = msg.y;
+	    }
+	}
+    }
+}
+
