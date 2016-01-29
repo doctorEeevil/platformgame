@@ -2,14 +2,35 @@
 var express = require('express');
 var app = express();
 
-// http://expressjs.com/starter/static-files.html
-app.use(express.static('public')); // serves /public/index.html
-app.use("/phaser", express.static('node_modules/phaser/dist'));
-
 var server = require('http').createServer(app);
 
 // https://github.com/socketio/socket.io
 var io = require('socket.io')(server);
+
+
+/***************************************
+ * 
+ ***************************************/
+
+var Game = function Game() {
+    this.gameNum = this.randomGameNumber();
+    this.gameUrl = "#" + this.gameNum;
+    this.all[this.gameNum] = this;
+};
+
+Game.prototype.randomGameNumber = function() {
+    return Math.round(Math.random() * 10000);
+};
+
+Game.prototype.all = {};
+
+Game.prototype.gotoGameMsg = function() {
+   return {gameNum: this.gameNum};
+};
+
+/***************************************
+ * P L A Y E R
+ ***************************************/
 
 var Player = function Player(obj, socket) {
     this.socket = socket;
@@ -61,9 +82,15 @@ Player.prototype.introduceOthers = function() {
 
 
 io.on('connection', function(socket){
+    socket.on('newGame', function(new_obj){
+	console.log("newGame",new_obj);
+	var game = new Game();
+	socket.emit('gotoGame',game.gotoGameMsg());
+    });    
     socket.on('joinGame', function(join_obj){
 	console.log("join_obj",join_obj);
-	var player_msg = {'nick': join_obj.nick};
+	var player_msg = {};
+	//socket.join(join_obj.gameNum);
 	socket.player = new Player(join_obj, socket);
 	io.emit('newPlayer',socket.player.make_newPlayer_msg());
 	socket.player.introduceOthers();
@@ -80,6 +107,12 @@ io.on('connection', function(socket){
 	}
     });
 });
+
+
+// http://expressjs.com/starter/static-files.html
+app.use(express.static('public')); // serves /public/index.html
+app.use("/phaser", express.static('node_modules/phaser/dist'));
+
 
 var port = 31016;
 console.log("  surf to http://localhost:"+port+"/");

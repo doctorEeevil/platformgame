@@ -13,9 +13,14 @@ function preload() {
     socket = io();
     socket.on('newPlayer', newPlayer);
     socket.on('updatePlayer', updatePlayer);
-    
-    //var nick = prompt("nickname?");
-    socket.emit('joinGame', {'nick': socket.id});
+    socket.on('gotoGame', gotoGame);
+
+    if (document.location.hash) {
+	var gameNum = document.location.hash.replace('#','');
+	socket.emit('joinGame', {'gameNum': gameNum});
+    } else {
+	socket.emit('newGame', {});
+    }
 }
 
 var player;
@@ -198,3 +203,6 @@ function updatePlayer(msg) {
     }
 }
 
+function gotoGame(msg) {
+    document.location.hash = msg.gameNum;
+}
