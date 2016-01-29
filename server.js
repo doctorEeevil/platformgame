@@ -81,10 +81,11 @@ io.on('connection', function(socket){
     });
 });
 
+var port = 31016;
 console.log();
-console.log("  surf to http://localhost:3000/");
+console.log("  surf to http://localhost:"+port+"/");
 console.log("  press Ctrl-C to quit :)");
 console.log();
 console.log("  love Dad");
 console.log();
-server.listen(3000);// "192.168.1.20");
+server.listen(port);
