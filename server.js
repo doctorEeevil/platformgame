@@ -80,7 +80,6 @@ Player.prototype.introduceOthers = function() {
 };
 
 
-
 io.on('connection', function(socket){
     socket.on('newGame', function(new_obj){
 	console.log("newGame",new_obj);
@@ -90,7 +89,7 @@ io.on('connection', function(socket){
     socket.on('joinGame', function(join_obj){
 	console.log("join_obj",join_obj);
 	var player_msg = {};
-	//socket.join(join_obj.gameNum);
+	socket.join(join_obj.gameNum);
 	socket.player = new Player(join_obj, socket);
 	io.emit('newPlayer',socket.player.make_newPlayer_msg());
 	socket.player.introduceOthers();
