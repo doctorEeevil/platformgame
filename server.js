@@ -83,5 +83,5 @@ io.on('connection', function(socket){
 
 var port = 31016;
 console.log("  surf to http://localhost:"+port+"/");
-console.log("  press Ctrl-C to quit :)");
+console.log("  press Ctrl-C to quit");
 server.listen(port);
