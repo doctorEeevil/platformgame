@@ -2,7 +2,7 @@
 
 ## Development
 
-This is a (nodejs)[http://nodejs.org] project.
+This is a http://nodejs.org project.
 
 To start the server for local use:
 
