@@ -16,7 +16,7 @@ var Player = function Player(obj, socket) {
     this.nick = obj.nick;
     this.x = 0;
     this.y = 0;
-    console.log("newPlayer:",this.nick);
+    console.log("new Player.id:",this.socket.conn.id);
     //console.log(socket);
 };
 
@@ -27,7 +27,7 @@ Player.prototype.make_newPlayer_msg = function() {
 
 Player.prototype.make_discoPlayer_msg = function() {
     return {nick: this.nick,
-	    id: this.socket.id};	    
+	    id: this.socket.conn.id};	    
 };
 
 Player.prototype.make_updatePlayer_msg = function() {
@@ -46,12 +46,27 @@ Player.prototype.move = function(args) {
     return (this.x != old_x || this.y != old_y);
 };
 
+Player.prototype.introduceOthers = function() {
+    //for (var sock in this.socket.
+    var socks = this.socket.server.sockets.sockets;
+    for (var p in socks) {
+	var player = socks[p].player;
+	if (player) {
+	    this.socket.emit('newPlayer',player.make_newPlayer_msg());
+	}
+    }
+
+};
+
+
+
 io.on('connection', function(socket){
     socket.on('joinGame', function(join_obj){
-	console.log(join_obj);
+	console.log("join_obj",join_obj);
 	var player_msg = {'nick': join_obj.nick};
 	socket.player = new Player(join_obj, socket);
-	io.emit('newPlayer',socket.player.make_newPlayer_msg());	
+	io.emit('newPlayer',socket.player.make_newPlayer_msg());
+	socket.player.introduceOthers();
     });
     socket.on('movePlayer', function(move_obj){
 	var dirty = socket.player.move(move_obj);

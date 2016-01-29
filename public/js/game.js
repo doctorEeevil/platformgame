@@ -10,19 +10,11 @@ function preload() {
     game.load.spritesheet('dude_yellow', 'assets/dude_yellow.png', 32, 48);
 
     socket = io();
-    socket.on('newPlayer', function(msg) {
-	//console.log("", msg);
-	//console.log(msg.id + " just joined the game");
-	newPlayer(msg);
-    });
-    socket.on('updatePlayer', function(msg) {
-	updatePlayer(msg);
-    });
+    socket.on('newPlayer', newPlayer);
+    socket.on('updatePlayer', updatePlayer);
     
     //var nick = prompt("nickname?");
     socket.emit('joinGame', {'nick': socket.id});
-    //alert("your id is "+socket.id);
-    //cmaterial.color = eval(new_color);
 }
 
 var player;
@@ -154,18 +146,28 @@ function update() {
         player.body.velocity.y = -350;
     }
 
-    socket.emit('movePlayer',{x: player.body.x, y: player.body.y});
+    player.current_x = Math.round(player.body.x);
+    player.current_pos = {
+	x: Math.round(player.body.x),
+	y: Math.round(player.body.y)};
+    if (!player.last_pos) {
+	player.last_pos = {};
+    }
+    if (player.current_pos.x != player.last_pos.x ||
+	player.current_pos.y != player.last_pos.y) {
+	player.last_pos.x = player.current_pos.x;
+	player.last_pos.y = player.current_pos.y;
+	socket.emit('movePlayer',player.current_pos);
+    }
 }
 
 function collectStar (player, star) {
-    
     // Removes the star from the screen
     star.kill();
 
     //  Add and update the score
     score += 10;
     scoreText.text = 'Score: ' + score;
-
 }
 
 function newPlayer(msg) {
@@ -176,16 +178,17 @@ function newPlayer(msg) {
 	dude.nick = msg.nick;
 	dude.other_id = msg.id;
 	console.log("others",others);
-    }
-    
+    }    
 }
 
 function updatePlayer(msg) {
+    var other;
     if (msg.id != socket.id) {
-	console.log("updatePlayer", msg);
-	for (var i = 0; i++; i < others.children.length) {
+	//console.log("updatePlayer", msg);
+	for (var i = 0; i < others.children.length; i++) {
+	    //console.log("i:",i);
 	    other = others.children[i];
-	    console.log("other",other);
+	    //console.log("other",other);
 	    if (other.other_id == msg.id) {
 		other.x = msg.x;
 		other.y = msg.y;
