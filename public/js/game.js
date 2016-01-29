@@ -1,15 +1,25 @@
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 function preload() {
-
     game.load.image('sky', 'assets/sky.png');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('star', 'assets/star.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
 
+    var socket = io();
+    socket.on('newPlayer', function(msg) {
+	console.log("data:", msg);
+	alert("new Player: ", msg.nick);
+	newPlayer(msg);
+    });
+    
+    var nick = prompt("nickname?");
+    socket.emit('joinGame', {'nick': nick});
+    //cmaterial.color = eval(new_color);
 }
 
 var player;
+var others;
 var platforms;
 var cursors;
 
@@ -88,7 +98,8 @@ function create() {
 
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
-    
+
+    others = game.add.group();
 }
 
 function update() {
@@ -148,4 +159,10 @@ function collectStar (player, star) {
     score += 10;
     scoreText.text = 'Score: ' + score;
 
+}
+
+function newPlayer(msg) {
+    console.log("newPlayer", msg);
+    var dude = others.create(0,0, 'star');
+    dude.nick = msg.nick;
 }
