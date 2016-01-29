@@ -1,20 +1,27 @@
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
+var socket;
+
 function preload() {
     game.load.image('sky', 'assets/sky.png');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('star', 'assets/star.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+    game.load.spritesheet('dude_yellow', 'assets/dude_yellow.png', 32, 48);
 
-    var socket = io();
+    socket = io();
     socket.on('newPlayer', function(msg) {
-	console.log("data:", msg);
-	alert("new Player: ", msg.nick);
+	//console.log("", msg);
+	//console.log(msg.id + " just joined the game");
 	newPlayer(msg);
     });
+    socket.on('updatePlayer', function(msg) {
+	updatePlayer(msg);
+    });
     
-    var nick = prompt("nickname?");
-    socket.emit('joinGame', {'nick': nick});
+    //var nick = prompt("nickname?");
+    socket.emit('joinGame', {'nick': socket.id});
+    //alert("your id is "+socket.id);
     //cmaterial.color = eval(new_color);
 }
 
@@ -138,7 +145,6 @@ function update() {
     {
         //  Stand still
         player.animations.stop();
-
         player.frame = 4;
     }
     scoreText.x = game.camera.x + 16;
@@ -148,6 +154,7 @@ function update() {
         player.body.velocity.y = -350;
     }
 
+    socket.emit('movePlayer',{x: player.body.x, y: player.body.y});
 }
 
 function collectStar (player, star) {
@@ -163,6 +170,27 @@ function collectStar (player, star) {
 
 function newPlayer(msg) {
     console.log("newPlayer", msg);
-    var dude = others.create(0,0, 'star');
-    dude.nick = msg.nick;
+    console.log("socket",socket);
+    if (msg.id != socket.id) {
+	var dude = others.create(0,0, 'dude_yellow');
+	dude.nick = msg.nick;
+	dude.other_id = msg.id;
+	console.log("others",others);
+    }
+    
 }
+
+function updatePlayer(msg) {
+    if (msg.id != socket.id) {
+	console.log("updatePlayer", msg);
+	for (var i = 0; i++; i < others.children.length) {
+	    other = others.children[i];
+	    console.log("other",other);
+	    if (other.other_id == msg.id) {
+		other.x = msg.x;
+		other.y = msg.y;
+	    }
+	}
+    }
+}
+
