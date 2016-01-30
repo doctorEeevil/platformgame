@@ -10,7 +10,7 @@ var io = require('socket.io')(server);
 
 
 /***************************************
- * 
+ * G A M E
  ***************************************/
 
 var Game = function Game() {
