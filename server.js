@@ -1,4 +1,5 @@
 // http://expressjs.com/
+var fs = require('fs');
 var express = require('express');
 var app = express();
 
@@ -27,6 +28,16 @@ Game.prototype.all = {};
 Game.prototype.gotoGameMsg = function() {
    return {gameNum: this.gameNum};
 };
+
+Game.prototype.join = function(join_obj, socket) {
+    a_game = Game.all[join_obj.gameNum];
+    console.log("Game.join()",a_game.gameNum);
+};
+
+Game.prototype.monotonedudesPath = 'public/assets/monotonedudes';
+
+Game.prototype.dudeFNames = fs.readdirSync(
+    Game.prototype.monotonedudesPath);
 
 /***************************************
  *            P L A Y E R
@@ -88,6 +99,7 @@ io.on('connection', function(socket){
     });    
     socket.on('joinGame', function(join_obj){
 	console.log("join_obj",join_obj);
+	// Game.prototype.join(join_obj, socket);
 	var player_msg = {};
 	socket.join(join_obj.gameNum);
 	socket.player = new Player(join_obj, socket);
