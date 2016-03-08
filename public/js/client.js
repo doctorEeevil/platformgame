@@ -31,6 +31,29 @@ var cursors;
 var stars;
 var score = 0;
 var scoreText;
+var currentLevel;
+
+function populateLevel(currentLevel) {
+  if (currentLevel.platforms) {
+    for (var plat_no = 0; plat_no < currentLevel.platforms.length ; plat_no++) {
+      var plat = currentLevel.platforms[plat_no];
+      var ledge = platforms.create(plat.x, plat.y, 'ground');
+      ledge.body.immovable = true;
+    }
+  }
+}
+
+function loadLevel(levelFileName) {
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4 && xhr.status == 200) {
+      currentLevel = JSON.parse(xhr.responseText);
+      populateLevel(currentLevel);
+    }
+  };
+  xhr.open("GET", "/levels/"+levelFileName, true);
+  xhr.send();
+}
 
 function create() {
 
@@ -58,11 +81,7 @@ function create() {
     ground.body.immovable = true;
 
     //  Now let's create two ledges
-    var ledge = platforms.create(400, 400, 'ground');
-    ledge.body.immovable = true;
-
-    ledge = platforms.create(-150, 250, 'ground');
-    ledge.body.immovable = true;
+    loadLevel('world.json');
 
     // The player and its settings
     player = game.add.sprite(32, game.world.height - 150, 'dude');
